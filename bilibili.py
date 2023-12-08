@@ -1,7 +1,7 @@
 '''
 Author: alphachen
 Date: 2023-11-28 18:07:47
-LastEditTime: 2023-12-08 16:24:46
+LastEditTime: 2023-12-08 16:38:33
 LastEditors: alphachen
 Description: 
 FilePath: /download/bilibili.py
@@ -52,12 +52,14 @@ class WinGUI(Tk):
         self.__win()
 
         self.path = StringVar()
+        self.inputurl = StringVar()
         self.path.set('/Users/alphachen/Music')
         self.tk_button_dirselect = self.__tk_button_dirselect(self)
         self.tk_input_vid = self.__tk_input_vid(self)
         self.tk_button_download = self.__tk_button_download(self)
         self.tk_text_log = self.__tk_text_log(self)
         self.tk_input_path = self.__tk_input_path(self)
+        self.inputurl.set("填写视频的url")
 
     def __win(self):
         self.title("下载B站音频")
@@ -128,7 +130,7 @@ class WinGUI(Tk):
         return btn
 
     def __tk_input_vid(self, parent):
-        ipt = Entry(parent)
+        ipt = Entry(parent, textvariable=self.inputurl)
         ipt.place(x=50, y=150, width=690, height=40)
         return ipt
 
@@ -165,7 +167,7 @@ class Win(WinGUI):
         self.path.set(path_)
 
     def __startDownLoad(self, evt):
-        bvid = self.tk_input_vid.get()
+        bvid = self.inputurl.get()
         if len(bvid) == 0:
             self.tk_text_log.insert(END, "请输入视频url\n")
             return
@@ -175,12 +177,16 @@ class Win(WinGUI):
         thread.start()
         self.threads.append(thread)
 
+    def __startEditUrl(self, evt):
+        self.inputurl.set("")
+
     def _onbvidhelp(self, evt):
         self.tk_text_log.insert(SEL_FIRST, "BV号是视频的id\n")
 
     def __event_bind(self):
         self.tk_button_dirselect.bind('<Button-1>', self.__dirSelect)
         self.tk_button_download.bind('<Button-1>', self.__startDownLoad)
+        self.tk_input_vid.bind('<Button-1>', self.__startEditUrl)
         #self.tk_input_vid.bind('<Enter>', self._onbvidhelp)
         pass
 
