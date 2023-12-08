@@ -1,7 +1,7 @@
 '''
 Author: alphachen
 Date: 2023-11-28 18:07:47
-LastEditTime: 2023-12-08 16:38:33
+LastEditTime: 2023-12-08 16:50:51
 LastEditors: alphachen
 Description: 
 FilePath: /download/bilibili.py
@@ -167,18 +167,33 @@ class Win(WinGUI):
         self.path.set(path_)
 
     def __startDownLoad(self, evt):
-        bvid = self.inputurl.get()
-        if len(bvid) == 0:
-            self.tk_text_log.insert(END, "请输入视频url\n")
-            return
         for thread1 in self.threads:
             thread1.join()
-        thread = threading.Thread(target=self.__download, name="download")
+        burl = self.inputurl.get()
+        if len(burl) == 0:
+            self.tk_text_log.insert(END, "请输入视频url\n")
+            return
+        urlret = urlparse(burl)
+        paths = urlret.path.split('/')
+        bvid = ""
+        if len(paths) > 2 and paths[2][0:3] == "BV1":
+            bvid = paths[2]
+        else:
+            self.tk_text_log.insert(END, "请输入正确的b站url\n")
+            return
+
+        self.tk_text_log.insert(END, "解析出来的bvid是:{}\n".format(bvid))
+
+        thread = threading.Thread(target=self.__download,
+                                  name="download",
+                                  args=(bvid, ))
         thread.start()
         self.threads.append(thread)
 
     def __startEditUrl(self, evt):
-        self.inputurl.set("")
+        istr = self.inputurl.get()
+        if istr == "填写视频的url":
+            self.inputurl.set("")
 
     def _onbvidhelp(self, evt):
         self.tk_text_log.insert(SEL_FIRST, "BV号是视频的id\n")
@@ -190,16 +205,7 @@ class Win(WinGUI):
         #self.tk_input_vid.bind('<Enter>', self._onbvidhelp)
         pass
 
-    def __download(self):
-        urlret = urlparse(self.tk_input_vid.get())
-        paths = urlret.path.split('/')
-        bvid = ""
-        if len(paths) > 2:
-            bvid = paths[2]
-        else:
-            self.tk_text_log.insert(END, "请输入正确的b站url\n")
-            return
-        self.tk_text_log.insert(END, "解析出来的bvid是:{}\n".format(bvid))
+    def __download(self, bvid: str):
         vc = self.__getCidAndTitle(bvid)
         if len(vc.page_list) == 0:
             self.tk_text_log.insert(END, "视频不存在\n")
