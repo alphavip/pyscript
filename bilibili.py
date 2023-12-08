@@ -1,7 +1,7 @@
 '''
 Author: alphachen
 Date: 2023-11-28 18:07:47
-LastEditTime: 2023-12-05 12:59:13
+LastEditTime: 2023-12-08 16:24:46
 LastEditors: alphachen
 Description: 
 FilePath: /download/bilibili.py
@@ -11,18 +11,19 @@ FilePath: /download/bilibili.py
 import requests
 import urllib
 import time
-import argparse
 import json
 import random
 import headers
 import myutil
 import os
-import csv
 import threading
+from urllib.parse import urlparse
 
 from tkinter import *
 from tkinter.ttk import *
 from tkinter.filedialog import askdirectory
+
+#https://www.bilibili.com/video/BV1mc411Q71M/?spm_id_from=333.1007.tianma.1-2-2.click&vd_source=8f98cd6cbdf2557adc95f04f10484cbd
 
 
 class PageContent(object):
@@ -166,7 +167,7 @@ class Win(WinGUI):
     def __startDownLoad(self, evt):
         bvid = self.tk_input_vid.get()
         if len(bvid) == 0:
-            self.tk_text_log.insert(END, "请输入视频BV号\n")
+            self.tk_text_log.insert(END, "请输入视频url\n")
             return
         for thread1 in self.threads:
             thread1.join()
@@ -184,7 +185,16 @@ class Win(WinGUI):
         pass
 
     def __download(self):
-        vc = self.__getCidAndTitle(self.tk_input_vid.get())
+        urlret = urlparse(self.tk_input_vid.get())
+        paths = urlret.path.split('/')
+        bvid = ""
+        if len(paths) > 2:
+            bvid = paths[2]
+        else:
+            self.tk_text_log.insert(END, "请输入正确的b站url\n")
+            return
+        self.tk_text_log.insert(END, "解析出来的bvid是:{}\n".format(bvid))
+        vc = self.__getCidAndTitle(bvid)
         if len(vc.page_list) == 0:
             self.tk_text_log.insert(END, "视频不存在\n")
             return
@@ -198,7 +208,7 @@ class Win(WinGUI):
             return False
         jsonData = resp.json()
         if "data" not in jsonData:
-            self.tk_text_log.insert(END, "找不到数据")
+            self.tk_text_log.insert(END, "找不到数据\n")
             return False
         return resp.json()['data']
 
@@ -225,7 +235,8 @@ class Win(WinGUI):
             return
         baseUrl = 'http://api.bilibili.com/x/player/playurl?fnval=16&'
         self.tk_text_log.insert(
-            END, str.format("{}一共{}页", vc.title, len(vc.page_list)))
+            END, str.format("{}一共{}页\n", vc.title, len(vc.page_list)))
+        useTime = 0
         for item in vc.page_list:
             st = time.time()
             bvid, cid, title = vc.bvid, item.cid, vc.title
@@ -269,11 +280,15 @@ class Win(WinGUI):
             except Exception as e:
                 self.tk_text_log.insert(END, "下载失败，因为：{}\n".format(e))
             ed = time.time()
+            pageUse = round(ed - st, 2)
+            useTime += pageUse
             self.tk_text_log.insert(
                 END,
-                str.format("{}s download finish:{}-{}\n", round(ed - st, 2),
-                           title, item.title))
+                str.format("{}s download finish:{}-{}\n", pageUse, title,
+                           item.title))
             time.sleep(1)
+        self.tk_text_log.insert(
+            END, str.format("{}下载完了,用时{}s\n", vc.title, useTime))
 
 
 if __name__ == "__main__":
