@@ -1,7 +1,7 @@
 '''
 Author: alphachen
 Date: 2023-11-28 18:07:47
-LastEditTime: 2023-12-08 16:50:51
+LastEditTime: 2023-12-08 18:14:10
 LastEditors: alphachen
 Description: 
 FilePath: /download/bilibili.py
@@ -195,6 +195,14 @@ class Win(WinGUI):
         if istr == "填写视频的url":
             self.inputurl.set("")
 
+    def __leaveUrlInput(self, evt):
+        preStr = self.inputurl.get()
+        if len(preStr) == 0:
+            self.inputurl.set("填写视频的url")
+
+    # def __testF3(self, evt):
+    #     self.tk_text_log.insert(END, "test f3\n")
+
     def _onbvidhelp(self, evt):
         self.tk_text_log.insert(SEL_FIRST, "BV号是视频的id\n")
 
@@ -202,6 +210,8 @@ class Win(WinGUI):
         self.tk_button_dirselect.bind('<Button-1>', self.__dirSelect)
         self.tk_button_download.bind('<Button-1>', self.__startDownLoad)
         self.tk_input_vid.bind('<Button-1>', self.__startEditUrl)
+        self.tk_input_vid.bind('<Leave>', self.__leaveUrlInput)
+        #self.tk_input_vid.bind('<F3>', self.__testF3)
         #self.tk_input_vid.bind('<Enter>', self._onbvidhelp)
         pass
 
