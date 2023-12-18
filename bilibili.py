@@ -1,7 +1,7 @@
 '''
 Author: alphachen
 Date: 2023-11-28 18:07:47
-LastEditTime: 2023-12-18 16:48:31
+LastEditTime: 2023-12-18 16:51:21
 LastEditors: alphachen
 Description: 
 FilePath: /download/bilibili.py
@@ -69,7 +69,7 @@ class WinGUI(Tk):
     def __win(self):
         self.title("下载B站音频")
         # 设置窗口大小、居中
-        width = 943
+        width = 900
         height = 536
         screenwidth = self.winfo_screenwidth()
         screenheight = self.winfo_screenheight()
