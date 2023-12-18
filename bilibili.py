@@ -1,7 +1,7 @@
 '''
 Author: alphachen
 Date: 2023-11-28 18:07:47
-LastEditTime: 2023-12-08 18:14:10
+LastEditTime: 2023-12-18 16:25:14
 LastEditors: alphachen
 Description: 
 FilePath: /download/bilibili.py
@@ -53,13 +53,18 @@ class WinGUI(Tk):
 
         self.path = StringVar()
         self.inputurl = StringVar()
+        self.inputpgae = StringVar()
         self.path.set('/Users/alphachen/Music')
         self.tk_button_dirselect = self.__tk_button_dirselect(self)
         self.tk_input_vid = self.__tk_input_vid(self)
+        self.tk_input_page = self.__tk_input_page(self)
+        #self.tk_label_page = self.__tk_label_page(self)
         self.tk_button_download = self.__tk_button_download(self)
         self.tk_text_log = self.__tk_text_log(self)
         self.tk_input_path = self.__tk_input_path(self)
         self.inputurl.set("填写视频的url")
+        self.inputpgae.set("第几页")
+        self.tk_text_log.insert(END, "欢迎使用B站音频下载器\n填写视频的url\n如果需要指定页,填上第几页")
 
     def __win(self):
         self.title("下载B站音频")
@@ -131,7 +136,12 @@ class WinGUI(Tk):
 
     def __tk_input_vid(self, parent):
         ipt = Entry(parent, textvariable=self.inputurl)
-        ipt.place(x=50, y=150, width=690, height=40)
+        ipt.place(x=50, y=150, width=600, height=40)
+        return ipt
+
+    def __tk_input_page(self, parent):
+        ipt = Entry(parent, textvariable=self.inputpgae)
+        ipt.place(x=660, y=150, width=80, height=40)
         return ipt
 
     def __tk_button_download(self, parent):
@@ -154,6 +164,11 @@ class WinGUI(Tk):
         ipt.place(x=50, y=90, width=690, height=40)
         return ipt
 
+    def __tk_label_page(self, parent):
+        label = Label(parent, text="指定页", justify="center", anchor="center")
+        label.place(x=50, y=210, width=50, height=30)
+        return label
+
 
 class Win(WinGUI):
 
@@ -171,7 +186,7 @@ class Win(WinGUI):
             thread1.join()
         burl = self.inputurl.get()
         if len(burl) == 0:
-            self.tk_text_log.insert(END, "请输入视频url\n")
+            self.__insertToLTextEnd("请输入视频url\n")
             return
         urlret = urlparse(burl)
         paths = urlret.path.split('/')
@@ -179,10 +194,10 @@ class Win(WinGUI):
         if len(paths) > 2 and paths[2][0:3] == "BV1":
             bvid = paths[2]
         else:
-            self.tk_text_log.insert(END, "请输入正确的b站url\n")
+            self.__insertToLTextEnd("请输入正确的b站url\n")
             return
 
-        self.tk_text_log.insert(END, "解析出来的bvid是:{}\n".format(bvid))
+        self.__insertToLTextEnd("解析出来的bvid是:{}\n".format(bvid))
 
         thread = threading.Thread(target=self.__download,
                                   name="download",
@@ -193,15 +208,15 @@ class Win(WinGUI):
     def __startEditUrl(self, evt):
         istr = self.inputurl.get()
         if istr == "填写视频的url":
-            self.inputurl.set("")
+            self.__clearUrlStr()
 
     def __leaveUrlInput(self, evt):
         preStr = self.inputurl.get()
         if len(preStr) == 0:
-            self.inputurl.set("填写视频的url")
+            self.__resetUrlStr()
 
     # def __testF3(self, evt):
-    #     self.tk_text_log.insert(END, "test f3\n")
+    #     self.__insertToLTextEnd("test f3\n")
 
     def _onbvidhelp(self, evt):
         self.tk_text_log.insert(SEL_FIRST, "BV号是视频的id\n")
@@ -218,7 +233,7 @@ class Win(WinGUI):
     def __download(self, bvid: str):
         vc = self.__getCidAndTitle(bvid)
         if len(vc.page_list) == 0:
-            self.tk_text_log.insert(END, "视频不存在\n")
+            self.__insertToLTextEnd("视频不存在\n")
             return
         self.__getAudio(vc)
 
@@ -230,9 +245,76 @@ class Win(WinGUI):
             return False
         jsonData = resp.json()
         if "data" not in jsonData:
-            self.tk_text_log.insert(END, "找不到数据\n")
+            self.__insertToLTextEnd("找不到数据\n")
             return False
         return resp.json()['data']
+
+    def __insertToLTextEnd(self, text: str):
+        self.tk_text_log.insert(END, text)
+        self.tk_text_log.see(END)
+
+    def __clearUrlStr(self):
+        self.inputurl.set("")
+        self.inputpgae.set("")
+
+    def __resetUrlStr(self):
+        self.inputurl.set("填写视频的url")
+        self.inputpgae.set("第几页")
+
+    def __dlpage(self, item: PageContent, vc: VideoContent):
+        st = time.time()
+        baseUrl = 'http://api.bilibili.com/x/player/playurl?fnval=16&'
+        bvid, cid, title = vc.bvid, item.cid, vc.title
+        url = baseUrl + 'bvid=' + bvid + '&cid=' + str(cid)
+
+        res = requests.get(url, headers=headers)
+        resjson = json.loads(res.text)
+        audioUrl = resjson['data']['dash']['audio'][0]['baseUrl']
+
+        opener = urllib.request.build_opener()
+        opener.addheaders = [
+            ('User-Agent',
+             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:56.0) Gecko/20100101 Firefox/56.0'
+             ),
+            ('Accept', '*/*'),
+            ('Accept-Language', 'en-US,en;q=0.5'),
+            ('Accept-Encoding', 'gzip, deflate, br'),
+            ('Range', 'bytes=0-'),
+            ('Referer', 'https://api.bilibili.com/x/web-interface/view?bvid=' +
+             bvid),  # 注意修改referer,必须要加的!
+            ('Origin', 'https://www.bilibili.com'),
+            ('Connection', 'keep-alive'),
+        ]
+        urllib.request.install_opener(opener)
+        if "/" in title:
+            title = " ".join(title.split("/"))
+        if '\\' in title:
+            title = " ".join(title.split("\\"))
+        for i in range(1, 5):
+            try:
+                #curdir = os.path.split(os.path.realpath(__file__))[0]
+                targetpath = myutil.mkdir(
+                    os.path.join(self.path.get(), vc.title))
+                filename = os.path.join(
+                    targetpath, str.format('P{:0>3d}_{}', item.page,
+                                           item.title))
+                self.tk_text_log.insert(
+                    END,
+                    str.format("第{}次尝试下载:第{:0>3d}页:{}\n", i, item.page,
+                               item.title))
+                urllib.request.urlretrieve(url=audioUrl,
+                                           filename=filename + '.mp3')
+                break
+            except Exception as e:
+                self.__insertToLTextEnd("下载失败，因为：{}\n".format(e))
+        ed = time.time()
+        pageUse = round(ed - st, 2)
+        self.tk_text_log.insert(
+            END,
+            str.format("{}s download finish:第{:0>3d}页:{}-{}\n", item.page,
+                       pageUse, title, item.title))
+        time.sleep(1)
+        return pageUse
 
     def __getCidAndTitle(self, bvid):
         url = 'https://api.bilibili.com/x/web-interface/view?bvid=' + bvid
@@ -253,64 +335,22 @@ class Win(WinGUI):
 
     def __getAudio(self, vc: VideoContent):
         if len(vc.title) == 0:
-            self.tk_text_log.insert(END, "error bv")
+            self.__insertToLTextEnd("error bv\n")
             return
-        baseUrl = 'http://api.bilibili.com/x/player/playurl?fnval=16&'
+
         self.tk_text_log.insert(
             END, str.format("{}一共{}页\n", vc.title, len(vc.page_list)))
         useTime = 0
-        for item in vc.page_list:
-            st = time.time()
-            bvid, cid, title = vc.bvid, item.cid, vc.title
-            url = baseUrl + 'bvid=' + bvid + '&cid=' + str(cid)
-
-            res = requests.get(url, headers=headers)
-            resjson = json.loads(res.text)
-            audioUrl = resjson['data']['dash']['audio'][0]['baseUrl']
-
-            opener = urllib.request.build_opener()
-            opener.addheaders = [
-                ('User-Agent',
-                 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:56.0) Gecko/20100101 Firefox/56.0'
-                 ),
-                ('Accept', '*/*'),
-                ('Accept-Language', 'en-US,en;q=0.5'),
-                ('Accept-Encoding', 'gzip, deflate, br'),
-                ('Range', 'bytes=0-'),
-                ('Referer',
-                 'https://api.bilibili.com/x/web-interface/view?bvid=' +
-                 bvid),  # 注意修改referer,必须要加的!
-                ('Origin', 'https://www.bilibili.com'),
-                ('Connection', 'keep-alive'),
-            ]
-            urllib.request.install_opener(opener)
-            if "/" in title:
-                title = " ".join(title.split("/"))
-            if '\\' in title:
-                title = " ".join(title.split("\\"))
-            try:
-                #curdir = os.path.split(os.path.realpath(__file__))[0]
-                targetpath = myutil.mkdir(
-                    os.path.join(self.path.get(), vc.title))
-                filename = os.path.join(
-                    targetpath, str.format('P{:0>3d}_{}', item.page,
-                                           item.title))
-                self.tk_text_log.insert(
-                    END, str.format("start donwload:{}\n", item.title))
-                urllib.request.urlretrieve(url=audioUrl,
-                                           filename=filename + '.mp3')
-            except Exception as e:
-                self.tk_text_log.insert(END, "下载失败，因为：{}\n".format(e))
-            ed = time.time()
-            pageUse = round(ed - st, 2)
-            useTime += pageUse
-            self.tk_text_log.insert(
-                END,
-                str.format("{}s download finish:{}-{}\n", pageUse, title,
-                           item.title))
-            time.sleep(1)
+        page = self.tk_input_page.get()
+        if len(page) > 0:
+            page = int(page)
+            if page > 0:
+                useTime += self.__dlpage(vc[page - 1], vc)
+        else:
+            for item in vc.page_list:
+                useTime += self.__dlpage(item, vc)
         self.tk_text_log.insert(
-            END, str.format("{}下载完了,用时{}s\n", vc.title, useTime))
+            END, str.format("{}下载完了,用时{}s\n", vc.title, round(useTime, 2)))
 
 
 if __name__ == "__main__":
