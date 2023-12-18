@@ -1,7 +1,7 @@
 '''
 Author: alphachen
 Date: 2023-11-28 18:07:47
-LastEditTime: 2023-12-18 16:25:14
+LastEditTime: 2023-12-18 16:48:31
 LastEditors: alphachen
 Description: 
 FilePath: /download/bilibili.py
@@ -225,7 +225,9 @@ class Win(WinGUI):
         self.tk_button_dirselect.bind('<Button-1>', self.__dirSelect)
         self.tk_button_download.bind('<Button-1>', self.__startDownLoad)
         self.tk_input_vid.bind('<Button-1>', self.__startEditUrl)
+        self.tk_input_page.bind('<Button-1>', self.__startEditUrl)
         self.tk_input_vid.bind('<Leave>', self.__leaveUrlInput)
+        self.tk_input_page.bind('<Leave>', self.__leaveUrlInput)
         #self.tk_input_vid.bind('<F3>', self.__testF3)
         #self.tk_input_vid.bind('<Enter>', self._onbvidhelp)
         pass
@@ -300,7 +302,7 @@ class Win(WinGUI):
                                            item.title))
                 self.tk_text_log.insert(
                     END,
-                    str.format("第{}次尝试下载:第{:0>3d}页:{}\n", i, item.page,
+                    str.format("第{}次尝试下载:第{:0>3d}页:《{}》\n", i, item.page,
                                item.title))
                 urllib.request.urlretrieve(url=audioUrl,
                                            filename=filename + '.mp3')
@@ -311,8 +313,8 @@ class Win(WinGUI):
         pageUse = round(ed - st, 2)
         self.tk_text_log.insert(
             END,
-            str.format("{}s download finish:第{:0>3d}页:{}-{}\n", item.page,
-                       pageUse, title, item.title))
+            str.format("{}s download finish:第{:0>3d}页:{}-{}\n", pageUse,
+                       item.page, vc.title, item.title))
         time.sleep(1)
         return pageUse
 
@@ -337,15 +339,16 @@ class Win(WinGUI):
         if len(vc.title) == 0:
             self.__insertToLTextEnd("error bv\n")
             return
-
+        page = self.inputpgae.get()
         self.tk_text_log.insert(
-            END, str.format("{}一共{}页\n", vc.title, len(vc.page_list)))
+            END, str.format("{} 一共{}页,\n", vc.title, len(vc.page_list)))
         useTime = 0
-        page = self.tk_input_page.get()
+
         if len(page) > 0:
             page = int(page)
-            if page > 0:
-                useTime += self.__dlpage(vc[page - 1], vc)
+            if page > 0 and page <= len(vc.page_list):
+                self.__insertToLTextEnd("指定下载{}页\n".format(page))
+                useTime += self.__dlpage(vc.page_list[page - 1], vc)
         else:
             for item in vc.page_list:
                 useTime += self.__dlpage(item, vc)
