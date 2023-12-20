@@ -156,7 +156,7 @@ class WinGUI(Tk):
     def __tk_text_log(self, parent):
         text = Text(parent)
         text.place(x=50, y=200, width=795, height=260)
-        self.create_bar(parent, text, True, False, 50, 200, 795, 260, 943, 536)
+        self.create_bar(parent, text, True, False, 50, 200, 795, 260, 900, 536)
         return text
 
     def __tk_input_path(self, parent):
