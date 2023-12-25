@@ -1,1 +1,1 @@
-pyinstaller --onefile -i bilibili.ico bilibili.py --noconsole
+pyinstaller --onefile -i bilibili.icns bilibili.py --noconsole
