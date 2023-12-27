@@ -1,7 +1,7 @@
 '''
 Author: alphachen
 Date: 2023-11-28 18:07:47
-LastEditTime: 2023-12-18 16:51:21
+LastEditTime: 2023-12-27 20:09:25
 LastEditors: alphachen
 Description: 
 FilePath: /download/bilibili.py
@@ -54,6 +54,7 @@ class WinGUI(Tk):
         self.path = StringVar()
         self.inputurl = StringVar()
         self.inputpgae = StringVar()
+        self.progress = IntVar(value=0)
         self.path.set('/Users/alphachen/Music')
         self.tk_button_dirselect = self.__tk_button_dirselect(self)
         self.tk_input_vid = self.__tk_input_vid(self)
@@ -62,6 +63,8 @@ class WinGUI(Tk):
         self.tk_button_download = self.__tk_button_download(self)
         self.tk_text_log = self.__tk_text_log(self)
         self.tk_input_path = self.__tk_input_path(self)
+        self.tk_progressbar_lqnndtsc = self.__tk_progressbar_lqnndtsc(self)
+
         self.inputurl.set("填写视频的url")
         self.inputpgae.set("第几页")
         self.tk_text_log.insert(END, "欢迎使用B站音频下载器\n填写视频的url\n如果需要指定页,填上第几页")
@@ -164,10 +167,12 @@ class WinGUI(Tk):
         ipt.place(x=50, y=90, width=690, height=40)
         return ipt
 
-    def __tk_label_page(self, parent):
-        label = Label(parent, text="指定页", justify="center", anchor="center")
-        label.place(x=50, y=210, width=50, height=30)
-        return label
+    def __tk_progressbar_lqnndtsc(self, parent):
+        progressbar = Progressbar(parent,
+                                  orient=HORIZONTAL,
+                                  variable=self.progress)
+        progressbar.place(x=0, y=530, width=900, height=6)
+        return progressbar
 
 
 class Win(WinGUI):
@@ -292,6 +297,10 @@ class Win(WinGUI):
             title = " ".join(title.split("/"))
         if '\\' in title:
             title = " ".join(title.split("\\"))
+
+        def __report(a, b, c):
+            self.progress.set(int(100 * a * b / c))
+
         for i in range(1, 5):
             try:
                 #curdir = os.path.split(os.path.realpath(__file__))[0]
@@ -305,7 +314,8 @@ class Win(WinGUI):
                     str.format("第{}次尝试下载:第{:0>3d}页:《{}》\n", i, item.page,
                                item.title))
                 urllib.request.urlretrieve(url=audioUrl,
-                                           filename=filename + '.mp3')
+                                           filename=filename + '.mp3',
+                                           reporthook=__report)
                 break
             except Exception as e:
                 self.__insertToLTextEnd("下载失败，因为：{}\n".format(e))
