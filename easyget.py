@@ -1,4 +1,4 @@
-'''
+"""
 Author: alphachen
 Date: 2023-05-22 16:55:47
 LastEditTime: 2023-11-08 12:08:44
@@ -6,7 +6,7 @@ LastEditors: alphachen
 Description: 
 FilePath: /pywork/pyscript/download/easyget.py
 版权声明
-'''
+"""
 import requests
 import os
 from progress import progress
@@ -26,15 +26,15 @@ user_agent = [
     "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/536.3 (KHTML, like Gecko) Chrome/19.0.1061.1 Safari/536.3",
     "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.3 (KHTML, like Gecko) Chrome/19.0.1061.1 Safari/536.3",
     "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.3 (KHTML, like Gecko) Chrome/19.0.1061.0 Safari/536.3",
-    "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/535.24 (KHTML, like Gecko) Chrome/19.0.1055.1 Safari/535.24"
+    "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/535.24 (KHTML, like Gecko) Chrome/19.0.1055.1 Safari/535.24",
 ]
 
 proxies = {
-    'http': 'http://127.0.0.1:7890',
-    'https': 'http://127.0.0.1:7890',
+    "http": "http://127.0.0.1:7890",
+    "https": "http://127.0.0.1:7890",
 }
 
-headers = {'user-agent': random.choice(user_agent)}
+headers = {"user-agent": random.choice(user_agent)}
 
 
 def dlpic(img_list, save_dir):
@@ -45,17 +45,15 @@ def dlpic(img_list, save_dir):
     for img_url in img_list:
         img_url = img_url.strip()
         try:
-            response_img = requests.get(url=img_url,
-                                        headers=headers,
-                                        proxies=proxies)
+            response_img = requests.get(url=img_url, headers=headers, proxies=proxies)
             # 获取图片名
-            img_name = img_url.split('/')[-1]
+            img_name = img_url.split("/")[-1]
         except Exception as error:
             print("requests except error:" + error)
         else:
             if response_img.status_code == 200:
                 # 保存图片
-                with open(f'{save_dir}/{img_name}', 'wb') as f:
+                with open(f"{save_dir}/{img_name}", "wb") as f:
                     f.write(response_img.content)
                     index = index + 1
                     progress(index * 100 // total)
