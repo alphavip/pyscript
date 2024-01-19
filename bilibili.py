@@ -266,6 +266,7 @@ class Win(WinGUI):
 
     def __dlpage(self, item: PageContent, vc: VideoContent):
         st = time.time()
+        pagesnum = len(vc.page_list)
         baseUrl = "http://api.bilibili.com/x/player/playurl?fnval=16&"
         bvid, cid, title = vc.bvid, item.cid, vc.title
         url = baseUrl + "bvid=" + bvid + "&cid=" + str(cid)
@@ -299,7 +300,7 @@ class Win(WinGUI):
                 # curdir = os.path.split(os.path.realpath(__file__))[0]
                 targetpath = myutil.mkdir(os.path.join(self.path.get(), vc.title))
                 filename = os.path.join(targetpath, str.format("P{:0>3d}_{}", item.page, item.title))
-                self.__insertToLTextEnd(str.format("第{}次尝试下载:第{:0>3d}页:《{}》\n", i, item.page, item.title))
+                self.__insertToLTextEnd(str.format("第{}次尝试下载:第{:0>3d}/{:0>3d}页:《{}》\n", i, item.page, pagesnum, item.title))
                 urllib.request.urlretrieve(url=audioUrl, filename=filename + ".mp3", reporthook=__report)
                 break
             except Exception as e:
