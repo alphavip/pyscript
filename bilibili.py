@@ -68,7 +68,7 @@ class WinGUI(Tk):
 
         self.inputurl.set("填写视频的url")
         self.inputpgae.set("第几页")
-        self.tk_text_log.insert(END, "欢迎使用B站音频下载器\n填写视频的url\n如果需要指定页,填上第几页")
+        self.tk_text_log.insert(END, "欢迎使用B站音频下载器\n填写视频的url\n如果需要指定页,填上第几页\n")
 
     def __win(self):
         self.title("下载B站音频")
