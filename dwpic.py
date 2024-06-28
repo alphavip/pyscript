@@ -11,7 +11,7 @@ proxies = {
 }
 
 
-url = "https://t66y.com/@www1120"
+url = "https://t66y.com/@欧比斯拉奇"
 useragent = UserAgent()
 stragent = str(useragent.random)
 print(stragent)
@@ -19,8 +19,9 @@ headers = {"User-Agent": stragent}
 response = requests.get(url=url, headers=headers, proxies=proxies)
 soup = BeautifulSoup(response.text, "html.parser")
 
-for th in soup.find_all("a"):
-    if "臀" in th.get_text():
+allatags = soup.find_all("a")
+for th in allatags:
+    if "库存" in th.get_text():
         chlink = th.get("href")
         reallink = os.path.join("https://t66y.com", chlink)
         print(th.get_text() + ":" + reallink)

@@ -31,8 +31,9 @@ response = requests.get(url=url, headers=headers, proxies=proxies)
 soup = BeautifulSoup(response.text, "html.parser")
 alltagtmg = soup.find_all("img")
 
-
-print(soup.title.string)
+# with open("test.html", "w", encoding="utf-8") as f:
+#     f.write(response.text)
+# print(soup.title.string)
 
 imglinklist = []
 for imgtag in alltagtmg:
@@ -41,5 +42,5 @@ for imgtag in alltagtmg:
         continue
     imglinklist.append(taglink)
 
-dlpic(imglinklist, "picture/清清库存，全是屁股。这波基本没漏B（四）[100P]")
+# dlpic(imglinklist, "picture/清清库存，全是屁股。这波基本没漏B（四）[100P]")
 print("over")
