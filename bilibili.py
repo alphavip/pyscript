@@ -23,7 +23,7 @@ from urllib.parse import urlparse
 
 import requests
 
-import headers
+from fake_useragent import UserAgent
 import myutil
 
 # https://www.bilibili.com/video/BV1mc411Q71M/?spm_id_from=333.1007.tianma.1-2-2.click&vd_source=8f98cd6cbdf2557adc95f04f10484cbd
@@ -43,7 +43,8 @@ class VideoContent(object):
         self.bvid = ""
 
 
-headers = {"user-agent": random.choice(headers.user_agent)}
+ua = UserAgent()
+headers = {"user-agent": ua.random}
 
 
 class WinGUI(Tk):
