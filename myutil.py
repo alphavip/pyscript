@@ -12,6 +12,9 @@ FilePath: /pywork/pyscript/download/myutil.py
 
 import datetime
 import os
+import requests
+import time
+import random
 
 
 def curdir():
@@ -40,6 +43,22 @@ def return_last_month_fl_day():
 
 def myhomedir():
     return os.path.expanduser("~")
+
+
+def myrequest(url: str, headers, proxies):
+    while True:
+        try:
+            response = requests.get(url=url, headers=headers, proxies=proxies)
+        except:
+            print("requests except error")
+            print("re trying...{}".format(url))
+            time.sleep(random.randint(1, 3))
+        else:
+            if response.status_code == 200:
+                return response
+            else:
+                print("requests error:{0}|{1}".format(str(response.status_code), url))
+                return None
 
 
 # print(os.environ["HOME"])

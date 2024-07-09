@@ -39,7 +39,7 @@ def dlpic(img_list, save_dir):
         img_url = img_url.strip()
         while True:
             try:
-                response_img = requests.get(url=img_url, headers=headers, proxies=proxies, verify=False)
+                response_img = requests.get(url=img_url, headers=headers, proxies=proxies)
                 # 获取图片名
                 img_name = img_url.split("/")[-1]
             except:
