@@ -41,7 +41,7 @@ if response is None:
     exit(1)
 soup = BeautifulSoup(response.text, "html.parser")
 
-keytxt = "全部都是适合后入的肥臀"
+keytxt = "部都是适合后入的肥臀"
 maxindex = nowindex
 
 allatags = soup.find_all("a")
