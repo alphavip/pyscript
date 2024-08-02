@@ -20,7 +20,6 @@ from tkinter import *
 from tkinter.filedialog import askdirectory
 from tkinter.ttk import *
 from urllib.parse import urlparse
-
 import requests
 
 from fake_useragent import UserAgent
@@ -349,5 +348,7 @@ class Win(WinGUI):
 
 
 if __name__ == "__main__":
+    # root = Tk()
+    # print(font.families())
     win = Win()
     win.mainloop()
