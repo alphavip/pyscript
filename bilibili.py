@@ -19,6 +19,7 @@ import urllib
 from tkinter import *
 from tkinter.filedialog import askdirectory
 from tkinter.ttk import *
+import tkinter.font as tkfont
 from urllib.parse import urlparse
 import requests
 
@@ -66,12 +67,16 @@ class WinGUI(Tk):
         self.tk_input_path = self.__tk_input_path(self)
         self.tk_progressbar_lqnndtsc = self.__tk_progressbar_lqnndtsc(self)
 
-        self.inputurl.set("填写视频的url")
-        self.inputpgae.set("第几页")
-        self.tk_text_log.insert(END, "欢迎使用B站音频下载器\n填写视频的url\n如果需要指定页,填上第几页\n")
+        self.inputurl.set("intput video url")
+        self.inputpgae.set("page number")
+        
+        # self.tk_text_log.insert(tkfont.families())
+        # print(tkfont.families())
+        self.tk_text_log.insert(END, "welcom to use bilibili dl\ninput video url\ninput page num if need\n")
+        
 
     def __win(self):
-        self.title("下载B站音频")
+        self.title("bilibili dl")
         # 设置窗口大小、居中
         width = 900
         height = 536
@@ -133,7 +138,7 @@ class WinGUI(Tk):
     def __tk_button_dirselect(self, parent):
         btn = Button(
             parent,
-            text="选择",
+            text="select path",
             takefocus=False,
         )
         btn.place(x=750, y=90, width=88, height=40)
@@ -152,14 +157,14 @@ class WinGUI(Tk):
     def __tk_button_download(self, parent):
         btn = Button(
             parent,
-            text="下载",
+            text="download",
             takefocus=False,
         )
         btn.place(x=750, y=150, width=88, height=40)
         return btn
 
     def __tk_text_log(self, parent):
-        text = Text(parent)
+        text = Text(parent, font=('Noto Serif CJK SC',14))
         text.place(x=50, y=200, width=795, height=260)
         self.create_bar(parent, text, True, False, 50, 200, 795, 260, 900, 536)
         return text
@@ -190,7 +195,7 @@ class Win(WinGUI):
             thread1.join()
         burl = self.inputurl.get()
         if len(burl) == 0:
-            self.__insertToLTextEnd("请输入视频url\n")
+            self.__insertToLTextEnd("please input video url\n")
             return
         urlret = urlparse(burl)
         paths = urlret.path.split("/")
@@ -198,10 +203,10 @@ class Win(WinGUI):
         if len(paths) > 2 and paths[2][0:3] == "BV1":
             bvid = paths[2]
         else:
-            self.__insertToLTextEnd("请输入正确的b站url\n")
+            self.__insertToLTextEnd("url parser error\n")
             return
 
-        self.__insertToLTextEnd("解析出来的bvid是:{}\n".format(bvid))
+        self.__insertToLTextEnd("bvid is:{}\n".format(bvid))
 
         thread = threading.Thread(target=self.__download, name="download", args=(bvid,))
         thread.start()
@@ -209,7 +214,7 @@ class Win(WinGUI):
 
     def __startEditUrl(self, evt):
         istr = self.inputurl.get()
-        if istr == "填写视频的url":
+        if istr == "intput video url":
             self.__clearUrlStr()
 
     def __leaveUrlInput(self, evt):
@@ -221,7 +226,7 @@ class Win(WinGUI):
     #     self.__insertToLTextEnd("test f3\n")
 
     def _onbvidhelp(self, evt):
-        self.tk_text_log.insert(SEL_FIRST, "BV号是视频的id\n")
+        self.tk_text_log.insert(SEL_FIRST, "BV id is\n")
 
     def __event_bind(self):
         self.tk_button_dirselect.bind("<Button-1>", self.__dirSelect)
@@ -237,7 +242,7 @@ class Win(WinGUI):
     def __download(self, bvid: str):
         vc = self.__getCidAndTitle(bvid)
         if len(vc.page_list) == 0:
-            self.__insertToLTextEnd("视频不存在\n")
+            self.__insertToLTextEnd("video is not exist\n")
             return
         self.__getAudio(vc)
 
@@ -248,7 +253,7 @@ class Win(WinGUI):
             return False
         jsonData = resp.json()
         if "data" not in jsonData:
-            self.__insertToLTextEnd("找不到数据\n")
+            self.__insertToLTextEnd("found no data, url is error?\n")
             return False
         return resp.json()["data"]
 
@@ -261,8 +266,8 @@ class Win(WinGUI):
         self.inputpgae.set("")
 
     def __resetUrlStr(self):
-        self.inputurl.set("填写视频的url")
-        self.inputpgae.set("第几页")
+        self.inputurl.set("intput video url")
+        self.inputpgae.set("page num")
 
     def __dlpage(self, item: PageContent, vc: VideoContent):
         st = time.time()
@@ -275,18 +280,7 @@ class Win(WinGUI):
         resjson = json.loads(res.text)
         audioUrl = resjson["data"]["dash"]["audio"][0]["baseUrl"]
 
-        opener = urllib.request.build_opener()
-        opener.addheaders = [
-            ("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:56.0) Gecko/20100101 Firefox/56.0"),
-            ("Accept", "*/*"),
-            ("Accept-Language", "en-US,en;q=0.5"),
-            ("Accept-Encoding", "gzip, deflate, br"),
-            ("Range", "bytes=0-"),
-            ("Referer", "https://api.bilibili.com/x/web-interface/view?bvid=" + bvid),  # 注意修改referer,必须要加的!
-            ("Origin", "https://www.bilibili.com"),
-            ("Connection", "keep-alive"),
-        ]
-        urllib.request.install_opener(opener)
+
         if "/" in title:
             title = " ".join(title.split("/"))
         if "\\" in title:
@@ -295,20 +289,38 @@ class Win(WinGUI):
         def __report(a, b, c):
             self.progress.set(int(100 * a * b / c))
 
-        for i in range(1, 5):
+        for i in range(1, 100):
             try:
                 # curdir = os.path.split(os.path.realpath(__file__))[0]
+                opener = urllib.request.build_opener()
+                useragent = UserAgent()
+                stragent = str(useragent.random)
+                opener.addheaders = [
+                    ("User-Agent", stragent),
+                    ("Accept", "*/*"),
+                    ("Accept-Language", "en-US,en;q=0.5"),
+                    ("Accept-Encoding", "gzip, deflate, br"),
+                    ("Range", "bytes=0-"),
+                    ("Referer", "https://api.bilibili.com/x/web-interface/view?bvid=" + bvid),  # 注意修改referer,必须要加的!
+                    ("Origin", "https://www.bilibili.com"),
+                    ("Connection", "keep-alive"),
+                ]
+                urllib.request.install_opener(opener)
                 targetpath = myutil.mkdir(os.path.join(self.path.get(), vc.title))
                 filename = os.path.join(targetpath, str.format("P{:0>3d}_{}", item.page, item.title))
-                self.__insertToLTextEnd(str.format("第{}次尝试下载:第{:0>3d}/{:0>3d}页:《{}》\n", i, item.page, pagesnum, item.title))
+                self.__insertToLTextEnd(str.format("try {} download:page{:0>3d}/{:0>3d}:《{}》\n", i, item.page, pagesnum, item.title))
                 urllib.request.urlretrieve(url=audioUrl, filename=filename + ".mp3", reporthook=__report)
                 break
             except Exception as e:
-                self.__insertToLTextEnd("下载失败，因为：{}\n".format(e))
+                self.__insertToLTextEnd("download error:{}\n".format(e))
+            randseconds = random.randint(20,60) * i
+            self.__insertToLTextEnd(str.format("sleep {}s\n", randseconds))
+            time.sleep(randseconds)
+            self.__insertToLTextEnd("sleep over\n")
         ed = time.time()
         pageUse = round(ed - st, 2)
-        self.__insertToLTextEnd(str.format("{}s download finish:第{:0>3d}页:{}-{}\n", pageUse, item.page, vc.title, item.title))
-        time.sleep(1)
+        self.__insertToLTextEnd(str.format("{}s download finish:page {:0>3d}:{}-{}\n", pageUse, item.page, vc.title, item.title))
+
         return pageUse
 
     def __getCidAndTitle(self, bvid):
@@ -333,18 +345,29 @@ class Win(WinGUI):
             self.__insertToLTextEnd("error bv\n")
             return
         page = self.inputpgae.get()
-        self.__insertToLTextEnd(str.format("{} 一共{}页,\n", vc.title, len(vc.page_list)))
+        self.__insertToLTextEnd(str.format("{} total {} pages,\n", vc.title, len(vc.page_list)))
         useTime = 0
-
+        
+        startpage = 0
+        endpage = len(vc.page_list)
         if len(page) > 0:
-            page = int(page)
-            if page > 0 and page <= len(vc.page_list):
-                self.__insertToLTextEnd("指定下载{}页\n".format(page))
-                useTime += self.__dlpage(vc.page_list[page - 1], vc)
-        else:
-            for item in vc.page_list:
-                useTime += self.__dlpage(item, vc)
-        self.__insertToLTextEnd(str.format("{}下载完了,用时{}s\n", vc.title, round(useTime, 2)))
+            outline = page.split(",")
+            if len(outline) > 1:
+                startpage = int(outline[0])
+                endpage = int(outline[1])
+            elif len(outline) == 1:
+                startpage = int(outline[0])
+            
+            for i in range(startpage, endpage):
+                if i != startpage:
+                    randseconds=random.randint(60,120)
+                    self.__insertToLTextEnd(str.format("sleep {}s\n", randseconds))
+                    time.sleep(randseconds)
+                    self.__insertToLTextEnd(str.format("sleep {}s over\n", randseconds))
+                useTime += self.__dlpage(vc.page_list[i], vc)
+
+
+        self.__insertToLTextEnd(str.format("{} download over,used {}s\n", vc.title, round(useTime, 2)))
 
 
 if __name__ == "__main__":

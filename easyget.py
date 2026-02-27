@@ -8,12 +8,13 @@ FilePath: /pywork/pyscript/download/easyget.py
 版权声明
 """
 
+import sys
 import os
 import random
 import time
 import requests
 import urllib3
-from progress import progress
+from myutil import progress
 from fake_useragent import UserAgent
 
 proxies = {
@@ -26,7 +27,7 @@ headers = {"user-agent": useragent.random}
 urllib3.disable_warnings()
 
 
-def dlpic(img_list, save_dir):
+def dlpic(img_list, save_dir, addindex=True):
     if not os.path.exists(save_dir):  # 如果文件夹不存在，就创建
         os.makedirs(save_dir)
     total = len(img_list)
@@ -39,9 +40,11 @@ def dlpic(img_list, save_dir):
         img_url = img_url.strip()
         while True:
             try:
-                response_img = requests.get(url=img_url, headers=headers, proxies=proxies)
+                response_img = requests.get(url=img_url, headers=headers, proxies=proxies, verify=False)
                 # 获取图片名
                 img_name = img_url.split("/")[-1]
+                if addindex:
+                    img_name = str(index).zfill(3) + "-" + img_name
             except:
                 print("requests except error")
                 print("re trying...{}".format(img_url))
@@ -54,10 +57,17 @@ def dlpic(img_list, save_dir):
                         index = index + 1
                         progress(index * 100 // total)
                     break
-                else:
+                elif response_img.status_code == 404:
                     print("requests error:{0}|{1}".format(str(response_img.status_code), img_url))
                     break
-            # time.sleep(random.randfloat(0, 1.0))
+                elif response_img.status_code == 403:
+                    print("requests error:{0}|{1}".format(str(response_img.status_code), img_url))
+                    break
+                else:
+                    print("requests error:{0}|{1}".format(str(response_img.status_code), img_url))
+                    # break
+            time.sleep(random.randint(0, 100) / 100)
+        time.sleep(random.randint(0, 100) / 100)
     print("")
 
 

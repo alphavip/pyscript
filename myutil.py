@@ -70,7 +70,7 @@ def myhomedir():
 def myrequest(url: str, headers, proxies):
     while True:
         try:
-            response = requests.get(url=url, headers=headers, proxies=proxies)
+            response = requests.get(url=url, headers=headers, proxies=proxies, verify=False)
         except:
             print("requests except error")
             print("re trying...{}".format(url))
@@ -81,7 +81,44 @@ def myrequest(url: str, headers, proxies):
             else:
                 print("requests error:{0}|{1}".format(str(response.status_code), url))
                 return None
+import requests
+from bs4 import BeautifulSoup
+import chardet
 
+def get_html_encoding(response):
+    # 步骤1：优先从响应头获取
+    if response.encoding:
+        return response.encoding
+    
+    # 步骤2：从 meta 标签获取
+    soup = BeautifulSoup(response.content, "lxml")
+    # 匹配 <meta charset="xxx">
+    meta_charset = soup.find("meta", attrs={"charset": True})
+    if meta_charset:
+        return meta_charset["charset"].upper()  # 统一转为大写（如 utf-8 → UTF-8）
+    # 匹配旧版 <meta http-equiv="Content-Type" content="text/html; charset=xxx">
+    meta_http = soup.find("meta", attrs={"http-equiv": lambda x: x and x.lower() == "content-type"})
+    if meta_http and "content" in meta_http.attrs:
+        content = meta_http["content"].lower()
+        if "charset=" in content:
+            return content.split("charset=")[1].strip().upper()
+    
+    # 步骤3：自动检测
+    detect_result = chardet.detect(response.content)
+    return detect_result["encoding"] or "UTF-8"
+
+# 测试使用
+# if __name__ == "__main__":
+#     target_url = "https://www.baidu.com"  # 替换为你的目标网页
+#     encoding = get_html_encoding(target_url)
+#     print(f"最终确定的编码：{encoding}")
+    
+#     # 用正确编码解析网页
+#     response = requests.get(target_url)
+#     html_text = response.content.decode(encoding, errors="ignore")
+#     soup = BeautifulSoup(html_text, "lxml")
+#     # 后续即可正常解析节点
+#     print("网页标题：", soup.title.text)
 
 # print(os.environ["HOME"])
 # print(os.path.expandvars("$HOME"))
